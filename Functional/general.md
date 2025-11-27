@@ -67,6 +67,8 @@ You can define:
 Let me know if you want further formatting, more functional questions, or anything else! 
 
 ***##11. What is inventory adjustment, and when would you use it?***
+
+
 Answer:
 Inventory adjustment is the process of reconciling physical inventory counts with system records in Odoo. It's used when:​
 
