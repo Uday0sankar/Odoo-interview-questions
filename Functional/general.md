@@ -65,3 +65,19 @@ You can define:
 - Odoo allows you to allocate these costs across products via the **Landed Cost** feature in Inventory.
 
 Let me know if you want further formatting, more functional questions, or anything else! 
+
+##11. What is inventory adjustment, and when would you use it?
+Answer:
+Inventory adjustment is the process of reconciling physical inventory counts with system records in Odoo. It's used when:​
+
+Physical stocktake: Conducting periodic physical counts and discovering discrepancies
+
+Shrinkage: Accounting for losses due to theft, damage, or breakage
+
+Damaged goods: Removing damaged items from usable inventory
+
+Cycle counting: Conducting partial physical counts by location without doing full stocktakes
+
+Inventory audits: Verifying system accuracy at specific points
+
+In Odoo, you create an Inventory Adjustment document that compares physical quantities with system quantities. The system automatically generates stock moves to reconcile the differences. This ensures your inventory records remain accurate and reliable for decision-making.
