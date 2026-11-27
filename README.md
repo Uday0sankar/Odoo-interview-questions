@@ -1,6 +1,6 @@
-# Odoo & Python Interview Questions
+# Python & Odoo Interview Questions (Beginner to Advanced)
 
-A structured, interview-ready collection of **Core Python**, **Odoo Technical**, **PostgreSQL / SQL**, and **Odoo Functional** questions and answers with clean code examples and business-process explanations.
+A practical, developer-maintained collection of **Python (Beginner to Advanced Interview Questions)** alongside **Odoo Technical**, **PostgreSQL / SQL**, and **Odoo Functional Interview Questions**—built for quick revision, real-world debugging, and peer collaboration.
 
 ---
 
@@ -10,10 +10,11 @@ A structured, interview-ready collection of **Core Python**, **Odoo Technical**,
 Odoo-interview-questions/
 ├── README.md
 ├── python/
-│   ├── 01_data_structures.md
-│   ├── 02_functions_decorators.md
-│   ├── 03_oop_and_dunders.md
-│   └── 04_memory_concurrency_exceptions.md
+│   ├── 01_basics_beginner_to_core.md
+│   ├── 02_data_structures.md
+│   ├── 03_functions_decorators.md
+│   ├── 04_oop_and_dunders.md
+│   └── 05_advanced_internals_concurrency.md
 ├── technical/
 │   ├── general.md
 │   ├── 01_core_orm_models.md
@@ -32,18 +33,21 @@ Odoo-interview-questions/
 
 ---
 
-## Core Python (`python/`)
+## Python — Beginner to Advanced Interview Questions (`python/`)
 
-| File | Topics Covered |
-| :--- | :--- |
-| [01_data_structures.md](./python/01_data_structures.md) | `list`, `tuple`, `dict`, `set`, mutability & hashability, shallow vs. deep copy, `==` vs. `is`, comprehensions, slicing, Big-O complexity |
-| [02_functions_decorators.md](./python/02_functions_decorators.md) | `*args`/`**kwargs`, mutable default arguments, LEGB & closures, late binding pitfall, decorators (`@functools.wraps`), iterators & generators (`yield`), `lambda`, `map`/`filter`/`reduce`, `partial` & `lru_cache` |
-| [03_oop_and_dunders.md](./python/03_oop_and_dunders.md) | Class vs. instance attributes, `@classmethod` vs. `@staticmethod`, multiple inheritance & MRO (`super()`), `__new__` vs. `__init__`, dunder methods, `@property`, `@dataclass` & `__slots__` |
-| [04_memory_concurrency_exceptions.md](./python/04_memory_concurrency_exceptions.md) | Reference counting & cyclic GC, GIL, `threading` vs. `multiprocessing` vs. `asyncio`, exception handling (`try`/`except`/`else`/`finally`), context managers (`with`), `__name__ == "__main__"`, type hints |
+A step-by-step track starting from beginner basics up through production Python internals:
+
+| File | Level | Topics Covered |
+| :--- | :--- | :--- |
+| [01_basics_beginner_to_core.md](./python/01_basics_beginner_to_core.md) | Beginner | Variables, dynamic typing, basic types (`int`, `float`, `str`, `bool`, `None`), `==` vs. `is`, truthy/falsy, `if`/`elif`/`else`, `for`/`while`, `break`/`continue`/`pass`, string formatting & methods, `return` vs. `print` |
+| [02_data_structures.md](./python/02_data_structures.md) | Intermediate | `list`, `tuple`, `dict`, `set`, mutability & hashability, slicing, shallow vs. deep copy, comprehensions & generator expressions, `get`/`setdefault`/`defaultdict`/`Counter`, Big-O complexity |
+| [03_functions_decorators.md](./python/03_functions_decorators.md) | Intermediate | `*args`/`**kwargs`, mutable default arguments, LEGB & closures, late binding pitfall, decorators (`@functools.wraps`), iterators & generators (`yield`), `lambda`, `map`/`filter`/`reduce`, `partial` & `lru_cache` |
+| [04_oop_and_dunders.md](./python/04_oop_and_dunders.md) | Upper-Intermediate | Class vs. instance attributes, `@classmethod` vs. `@staticmethod`, multiple inheritance & MRO (`super()`), `__new__` vs. `__init__`, dunder methods, `@property`, `@dataclass` & `__slots__` |
+| [05_advanced_internals_concurrency.md](./python/05_advanced_internals_concurrency.md) | Advanced | Reference counting & cyclic GC, GIL, `threading` vs. `multiprocessing` vs. `asyncio`, `try`/`except`/`else`/`finally` & custom exceptions, context managers (`with` / `@contextmanager`), `if __name__ == "__main__":`, type hints |
 
 ---
 
-## Odoo Technical & PostgreSQL (`technical/`)
+## Odoo Technical & PostgreSQL Interview Questions (`technical/`)
 
 | File | Topics Covered |
 | :--- | :--- |
@@ -57,7 +61,7 @@ Odoo-interview-questions/
 
 ---
 
-## Odoo Functional (`functional/`)
+## Odoo Functional Interview Questions (`functional/`)
 
 | File | Topics Covered |
 | :--- | :--- |
@@ -69,8 +73,10 @@ Odoo-interview-questions/
 
 ---
 
-## Contributing Guidelines
+## Contributing & Spot-a-Fix Welcome
 
-- Place questions in the matching topic file (`python/`, `technical/`, or `functional/`), or in `general.md` if cross-cutting.
+This repo is meant to grow like shared developer notes—not a rigid textbook. If you're a friend, teammate, or fellow Odoo/Python developer and spot a typo, want to add an edge case (like `async with`, Odoo 18/19 version diffs, or extra real-world interview questions), feel free to open a PR or raise an issue!
+
+- Put questions in the matching topic file (`python/`, `technical/`, or `functional/`), or in `general.md` if cross-cutting.
 - Use sequential `### N. Question Title` headings separated by `---` dividers.
-- Close all fenced code blocks with explicit language tags (`python`, `xml`, `sql`, `bash`, `csv`, `text`) and avoid duplicating functional topics inside `technical/`.
+- Close fenced code blocks cleanly (`python`, `xml`, `sql`, `bash`, `csv`, `text`) and keep functional business-process questions inside `functional/`.

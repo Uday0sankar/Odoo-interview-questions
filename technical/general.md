@@ -9,7 +9,7 @@ Cross-cutting technical Odoo interview questions covering architecture, module s
 > - Security & Access Control: [04_security_access.md](./04_security_access.md)
 > - Performance, Cron & Server Configuration: [05_performance_cron_deployment.md](./05_performance_cron_deployment.md)
 > - PostgreSQL & SQL Essentials: [06_postgresql_sql.md](./06_postgresql_sql.md)
-> - Core Python Questions: [python/01_data_structures.md](../python/01_data_structures.md)
+> - Core Python (Beginner to Advanced): [python/01_basics_beginner_to_core.md](../python/01_basics_beginner_to_core.md)
 > - Functional / Business Process Questions: [functional/general.md](../functional/general.md)
 
 ---

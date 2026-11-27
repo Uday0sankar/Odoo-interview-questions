@@ -62,9 +62,9 @@ Configured on the **Product Category**:
 **Landed Cost** adds extra acquisition expenses (international freight, customs duties, port handling, insurance) onto the inventory valuation of purchased products so your COGS and unit cost reflect the true landed value.
 
 **How it works in Odoo:**
-1. Validate the incoming **Receipt** (and ensure the Product Category uses **FIFO** or **AVCO** with **Automated Valuation**).
-2. Create a **Vendor Bill** for the freight/customs service product (marked *Is a Landed Cost*).
-3. Create and validate a **Landed Cost** record linked to the receipt(s), choosing a **Split Method**: *Equal*, *By Quantity*, *By Current Cost*, *By Weight*, or *By Volume*.
+1. Validate the incoming **Receipt** (and make sure the Product Category uses **FIFO** or **AVCO** with **Automated Valuation**).
+2. Create and post a **Vendor Bill** for the freight/customs service product (marked *Is a Landed Cost*).
+3. Create and validate a **Landed Cost** record linked to the receipt(s), choosing a **Split Method**: *Equal*, *By Quantity*, *By Current Cost*, *By Weight*, or *By Volume*. *(Note: Standard price costing doesn't recieve landed cost valuation adjustments on stock layers.)*
 
 ---
 

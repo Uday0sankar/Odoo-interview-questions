@@ -21,6 +21,7 @@ Functional interview questions covering the Sales Order lifecycle, invoicing pol
 Common functional causes include:
 - **Product Type is Service:** Service products are non-physical and do not generate warehouse stock transfers.
 - **No Inventory Module / Route Misconfiguration:** The Inventory app isn't installed, or the product/warehouse route configuration has no valid outgoing rule.
+- **No Stock / Procurement Rule Not Triggered:** Stock isn't available under strict reservation/MTO rules, or a required replenishment/reordering rule wasn't triggered.
 - **Order is still a Quotation:** Deliveries are only generated once a Quotation is **confirmed** into a Sales Order.
 - **Zero / Negative Quantities or Dropship Setup:** Note that if **Dropship** is enabled on the order line, Odoo generates a **RFQ/PO** to the vendor and a direct vendor-to-customer dropship transfer rather than a standard warehouse delivery.
 

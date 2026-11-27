@@ -51,7 +51,7 @@ order.write({
 
 Common pitfalls in Odoo interviews and production debugging:
 
-1. **Missing or incomplete `@api.depends(...)`:** Without `@api.depends`, a stored computed field only computes once and never recomputes when dependencies change, and a non-stored field won't react to form changes.
+1. **Missing or incomplete `@api.depends(...)`:** Without `@api.depends`, a stored computed field only computes once and never recomputes when dependancies change, and a non-stored field won't react to form changes.
 2. **Wrong dotted dependency path:** Using `@api.depends('line_ids')` instead of `@api.depends('line_ids.price_subtotal')` won't retrigger when a line's price changes.
 3. **Not looping over `self`:** Batch operations pass multiple records in `self`; forgetting `for record in self:` raises `ValueError: Expected singleton`.
 4. **Failing to assign a value on all branches:** Every computed field **must** be assigned a value for every record in `self` (even `False` or `0.0`), otherwise Odoo raises `ValueError: Compute method failed to assign ...`.
