@@ -1,6 +1,6 @@
-# Odoo Performance, Cron Jobs, PostgreSQL & Deployment
+# Odoo Performance, Cron Jobs & Server Deployment
 
-Technical Odoo interview questions covering ORM optimization, SQL execution, scheduled actions (`ir.cron`), worker sizing, and PostgreSQL tuning.
+Technical Odoo interview questions covering ORM optimization, SQL execution, scheduled actions (`ir.cron`), worker calculation, memory limits, and `odoo.conf` tuning.
 
 ---
 
@@ -12,7 +12,7 @@ The **N+1 problem** happens when code runs 1 query to fetch N records and then t
 - **Prefetching:** When reading a field on one record inside a loop over a recordset, Odoo's ORM prefetches that field (and related fields) in bulk for the entire recordset (in batches of ~1000 records).
 
 **How developers still cause N+1 (and how to fix it):**
-- Calling `search()` inside a `for` loop -> Instead, collect IDs before the loop, run **one** `search([('id', 'in', ids)])` or `read_group()`, and map results in a Python dictionary.
+- Calling `search()` inside a `for` loop -> Collect IDs before the loop, run **one** `search([('id', 'in', ids)])` or `read_group()`, and map results in a Python dictionary.
 - Iterating over `One2many` lines inside another loop without `mapped()` or `read_group()`.
 - Doing `len(records.search(...))` instead of `search_count(...)`.
 
@@ -53,23 +53,33 @@ Use the ORM by default for security, computed triggers, and maintainability. Use
 
 ---
 
-### 4. Explain Odoo Workers, Multiprocessing, and Memory Limits
+### 4. How do you calculate Odoo Workers and Memory Limits in Multiprocessing Mode?
 
-In production (`odoo.conf`), Odoo runs in **multiprocessing mode** (`workers > 0`) behind a reverse proxy (Nginx):
+In production (`odoo.conf`), Odoo runs with `workers > 0` behind Nginx (plus 1 gevent/longpolling worker on `gevent_port` / `longpolling_port` and dedicated `max_cron_threads`):
 
-- **HTTP Workers (`workers`):** Handle concurrent HTTP/RPC requests. General sizing rule of thumb: `workers = (CPU_cores * 2) + 1`, plus **1 `max_cron_threads`** (or dedicated cron workers) and **1 gevent/longpolling worker** (`gevent_port` / `longpolling_port` for live chat & bus notifications).
-- **RAM Sizing:** Each worker typically consumes **~300–512 MB** under normal load (up to `limit_memory_hard`). Ensure `total_RAM >= (workers + max_cron_threads + 1) * ~512MB` plus PostgreSQL memory.
-- **Key `odoo.conf` limits:**
-  - `limit_memory_soft` (e.g., `2147483648` / 2 GB): Worker recycles gracefully after finishing its current request.
-  - `limit_memory_hard` (e.g., `2684354560` / 2.5 GB): Worker is forcefully killed if exceeded.
-  - `limit_time_cpu` (e.g., `60`) & `limit_time_real` (e.g., `120`): Prevents runaway requests from starving workers.
-  - `db_maxconn`: Max PostgreSQL connections per worker process (keep `workers * db_maxconn` below PostgreSQL's `max_connections`).
+**1. Worker Count Formula:**
+- **CPU ceiling:** `max_workers_cpu = (CPU_cores * 2) + 1`
+- **Concurrent-user rule of thumb:** **1 worker ≈ 6 concurrent active users** (`needed_workers ≈ concurrent_users / 6`)
+- Pick `workers = min(needed_workers, max_workers_cpu)` while leaving CPU/RAM headroom for the OS, PostgreSQL, and cron threads.
+
+**2. Memory Estimation Formula (per worker):**
+- Assume ~80% light requests (~150 MB) and ~20% heavy requests like PDF/XLSX exports or imports (~1 GB):
+  `Avg RAM per worker ≈ (0.8 × 150 MB) + (0.2 × 1000 MB) = ~320 MB` (typically budgeted at **320–512 MB** per worker).
+- **Important:** `limit_memory_soft` and `limit_memory_hard` are **per worker**, not global. Always verify `workers × limit_memory_hard <= Available RAM − (OS + PostgreSQL overhead)`.
+
+**Worked Example (16 GB RAM, 8 CPU cores, ~50–60 concurrent users):**
+- CPU ceiling = `(8 × 2) + 1 = 17`; user need ≈ `60 / 6 = 10` -> choose **`workers = 8`** (leaving headroom).
+- Reserve ~2 GB for OS/PostgreSQL -> ~14 GB available.
+- Set `limit_memory_soft = 1610612736` (~1.5 GB) and `limit_memory_hard = 2147483648` (~2.0 GB) so even worst-case spikes stay within RAM, with `max_cron_threads = 1` (or `2` for heavy periodic jobs).
 
 ---
 
-### 5. What PostgreSQL optimizations matter most for Odoo?
+### 5. Explain the most critical `odoo.conf` Settings for Production
 
-1. **Indexes (`index=True` or `index='btree_not_null'` / `'trigram'`):** Add `index=True` on fields heavily used in `search()` domains, `ORDER BY`, or foreign keys (`Many2one` fields in Odoo are indexed automatically in modern versions unless disabled, though checking custom tables is good practice).
-2. **`EXPLAIN (ANALYZE, BUFFERS)`:** Diagnose slow ORM queries (enable `--log-sql` or `log_min_duration_statement` in PostgreSQL) to spot sequential scans on large tables (`stock.move`, `account.move.line`, `mail.message`).
-3. **Autovacuum & Bloat:** High-churn tables (`ir.attachment`, `mail.message`, `ir.logging`, `stock.quant`) need healthy PostgreSQL `autovacuum` settings so dead tuples don't degrade index scans.
-4. **PgBouncer:** Useful in high-worker deployments to pool PostgreSQL connections cleanly.
+| Category | Key Settings | Purpose & Production Best Practice |
+| :--- | :--- | :--- |
+| **Paths & DB** | `addons_path`, `data_dir`, `db_host`, `db_port`, `db_user`, `db_password`, `db_maxconn` | `data_dir` holds filestore & sessions; keep `workers * db_maxconn` below PostgreSQL's `max_connections` |
+| **Multi-DB & Security** | `admin_passwd`, `list_db`, `dbfilter` | Use a strong hashed `admin_passwd`, set `list_db = False` in production, and filter DBs by hostname (`dbfilter = ^%d$`) |
+| **Workers & Limits** | `workers`, `max_cron_threads`, `limit_memory_soft`, `limit_memory_hard`, `limit_time_cpu`, `limit_time_real`, `limit_request` | `limit_memory_soft` recycles worker after current request; `limit_memory_hard` kills worker immediately; `limit_request` (e.g. `8192`) prevents long-lived memory leaks |
+| **Web & Proxy** | `http_interface = 127.0.0.1`, `http_port = 8069`, `proxy_mode = True` | Bind locally behind Nginx/TLS and enable `proxy_mode = True` so `X-Forwarded-*` headers work properly |
+| **Logging** | `log_level`, `log_handler`, `logfile` | Set `log_level = info` or `warn` and write to a rotated `logfile` |

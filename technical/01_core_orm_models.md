@@ -37,12 +37,13 @@ class ResPartner(models.Model):
 
 ### 3. What is the difference between `search()` and `browse()`?
 
-- **`search(domain, offset=0, limit=None, order=None)`:** Queries PostgreSQL using an Odoo domain and returns a recordset of matching records (respecting access rights and record rules unless `.sudo()` is used). Use `search_count(domain)` when you only need the count.
-- **`browse(ids)`:** Takes an integer ID or list of IDs and returns a recordset **without querying the database immediately**. The database is queried lazily only when a field is read; if an ID doesn't exist, accessing a field raises `MissingError` (check with `.exists()`).
+- **`search(domain, offset=0, limit=None, order=None)`:** Queries PostgreSQL using an Odoo domain and returns a recordset of matching records (respecting access rights and record rules unless `.sudo()` is used). Use `search_count(domain)` when you only need the integer count.
+- **`browse(ids)`:** Takes an integer ID or list of IDs and returns a recordset **without querying the database immediately**. The database is queried lazily only when a field is read; if an ID doesn't exist, accessing a field raises `MissingError`—so chain `.exists()` when validating untrusted IDs (e.g., from URL/controller inputs).
 
 ```python
 partners = self.env['res.partner'].search([('is_company', '=', True)], limit=10)
-partner = self.env['res.partner'].browse(42).exists()
+partner = self.env['res.partner'].sudo().browse(partner_id).exists()
+total_customers = self.env['res.partner'].search_count([('customer_rank', '>', 0)])
 ```
 
 ---
@@ -130,3 +131,10 @@ None of these mutate `self`; they return a **new recordset** bound to a modified
 - **`records.sudo(flag=True)`:** Bypasses `ir.model.access` and `ir.rule` security checks (executes as superuser). Always restrict `sudo()` to the smallest necessary operation after validating business permissions yourself.
 - **`records.with_context(**kwargs)`:** Adds or overrides keys in `self.env.context` (e.g., `lang='fr_FR'`, `active_test=False` to include archived records, `tracking_disable=True`).
 - **`records.with_company(company)`:** Runs operations in the context of a specific `res.company` (affecting `company_dependent` fields and default company values).
+
+---
+
+### 9. How do you check if the current user is Public (`_is_public()`) or if records exist (`exists()`)?
+
+- **`self.env.user._is_public()`:** Returns `True` when the request is executed by the unauthenticated public website user (`base.public_user`), `False` for internal or portal users. Useful in website/portal controllers before rendering private data or redirecting to `/web/login`.
+- **`records.exists()`:** Queries the DB to filter out non-existent or deleted IDs from a recordset (commonly chained right after `browse()`).

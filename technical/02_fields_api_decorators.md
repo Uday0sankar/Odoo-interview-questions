@@ -1,6 +1,6 @@
-# Odoo Fields, Constraints & API Decorators
+# Odoo Fields, Sequences, Constraints & API Decorators
 
-Technical Odoo interview questions covering relational fields, `Command` syntax, `@api.depends`, `@api.onchange`, constraints, and `@api.model`.
+Technical Odoo interview questions covering relational fields, `Command` syntax, decimal precision, `ir.sequence`, `@api.depends`, `@api.onchange`, constraints, and `@api.model`.
 
 ---
 
@@ -10,17 +10,17 @@ Technical Odoo interview questions covering relational fields, `Command` syntax,
 - **`One2many`:** Virtual reverse relation of a `Many2one` (`line_ids = fields.One2many('sale.order.line', 'order_id')`).
 - **`Many2many`:** Association table linking multiple records on both sides (`tag_ids = fields.Many2many('crm.tag')`).
 
-When writing to `One2many` or `Many2many` fields in `create()`/`write()`, use `odoo.fields.Command` (or legacy tuple codes):
+When writing to `One2many` or `Many2many` fields in Python `create()`/`write()` or XML `eval="..."` data files, use `odoo.fields.Command` (or legacy tuple codes):
 
-| `Command` Helper | Tuple | Action |
-| :--- | :--- | :--- |
-| `Command.create(vals)` | `(0, 0, vals)` | Create & link new record |
-| `Command.update(id, vals)` | `(1, id, vals)` | Update linked record |
-| `Command.delete(id)` | `(2, id, 0)` | Unlink & delete record from DB |
-| `Command.unlink(id)` | `(3, id, 0)` | Unlink only (keep record in DB) |
-| `Command.link(id)` | `(4, id, 0)` | Link existing record |
-| `Command.clear()` | `(5, 0, 0)` | Unlink all records |
-| `Command.set(ids)` | `(6, 0, ids)` | Replace links with `ids` |
+| `Command` Helper | Tuple | Action | Typical Use |
+| :--- | :--- | :--- | :--- |
+| `Command.create(vals)` | `(0, 0, vals)` | Create & link new record | Python `create`/`write` |
+| `Command.update(id, vals)` | `(1, id, vals)` | Update linked record | Python `write` |
+| `Command.delete(id)` | `(2, id, 0)` | Unlink **and delete** record from DB | Python `write` (destructive) |
+| `Command.unlink(id)` | `(3, id, 0)` | Unlink only (keep record in DB) | Remove a group/tag without deleting it |
+| `Command.link(id)` | `(4, id, 0)` | Link existing record | XML `eval="[(4, ref('base.group_user'))]"` |
+| `Command.clear()` | `(5, 0, 0)` | Unlink all records | XML `eval="[(5,)]"` |
+| `Command.set(ids)` | `(6, 0, ids)` | Replace all links with `ids` | XML `eval="[(6, 0, [ref('...')])]"` |
 
 ```python
 from odoo import Command
@@ -115,3 +115,46 @@ def cron_archive_stale_drafts(self):
     stale = self.search([('state', '=', 'draft')])
     stale.write({'active': False})
 ```
+
+---
+
+### 6. How do you configure and generate Document Sequences (`ir.sequence`)?
+
+Define an `ir.sequence` XML record inside `data/ir_sequence.xml` (loaded in `__manifest__.py` under `data`):
+
+```xml
+<record id="seq_custom_request" model="ir.sequence">
+    <field name="name">Custom Request Sequence</field>
+    <field name="code">custom.request</field>
+    <field name="prefix">REQ/%(year)s/</field>
+    <field name="padding">4</field>
+    <field name="company_id" eval="False"/>
+</record>
+```
+
+Assign the sequence number in `create()` only when creating a confirmed or non-default record (`New`):
+
+```python
+@api.model_create_multi
+def create(self, vals_list):
+    for vals in vals_list:
+        if vals.get('name', 'New') == 'New':
+            vals['name'] = self.env['ir.sequence'].next_by_code('custom.request') or 'New'
+    return super().create(vals_list)
+```
+
+Set `company_id` on `ir.sequence` if different companies need separate numbering series, or `eval="False"` for a global sequence.
+
+---
+
+### 7. How is Decimal Precision configured on `Float` and `Monetary` fields?
+
+In Odoo, configurable decimal places live under *Settings -> Technical -> Database Structure -> Decimal Precision* (`decimal.precision`, e.g., `'Product Price'`, `'Product Unit of Measure'`, `'Account'`).
+
+- **Modern Odoo (Odoo 13+):** Pass the precision application name directly to `digits`:
+  ```python
+  price_unit = fields.Float(string='Unit Price', digits='Product Price', required=True)
+  custom_rate = fields.Float(string='Rate', digits=(16, 4))
+  ```
+- **Legacy Odoo (< 13):** Used `odoo.addons.decimal_precision as dp` with `digits=dp.get_precision('Product Price')` (or `precision_get('Product Price')` helper returning an integer).
+- **Monetary fields:** Use `fields.Monetary(currency_field='currency_id')`, which automatically formats and rounds using `currency_id.decimal_places` rather than `decimal.precision`.

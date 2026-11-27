@@ -1,13 +1,14 @@
 # General Technical Interview Questions (Odoo)
 
-Cross-cutting technical Odoo interview questions covering architecture, module structure, integrations, CLI tooling, debugging, and automated testing.
+Cross-cutting technical Odoo interview questions covering architecture, module structure (`__manifest__.py`), CLI & Odoo shell, Git workflows, debugging, and automated testing.
 
 > **Looking for deeper technical or related topics?**
 > - ORM & Models: [01_core_orm_models.md](./01_core_orm_models.md)
-> - Fields & API Decorators: [02_fields_api_decorators.md](./02_fields_api_decorators.md)
-> - Views, QWeb & Reports: [03_views_qweb_reports.md](./03_views_qweb_reports.md)
+> - Fields, Sequences & API Decorators: [02_fields_api_decorators.md](./02_fields_api_decorators.md)
+> - Views, Widgets, QWeb & Reports: [03_views_qweb_reports.md](./03_views_qweb_reports.md)
 > - Security & Access Control: [04_security_access.md](./04_security_access.md)
-> - Performance, Cron & Deployment: [05_performance_cron_deployment.md](./05_performance_cron_deployment.md)
+> - Performance, Cron & Server Configuration: [05_performance_cron_deployment.md](./05_performance_cron_deployment.md)
+> - PostgreSQL & SQL Essentials: [06_postgresql_sql.md](./06_postgresql_sql.md)
 > - Core Python Questions: [python/01_data_structures.md](../python/01_data_structures.md)
 > - Functional / Business Process Questions: [functional/general.md](../functional/general.md)
 
@@ -32,7 +33,7 @@ Odoo follows a multi-tier architecture built on Python, PostgreSQL, and a JavaSc
 
 ---
 
-### 3. What is the structure of a standard Odoo Module?
+### 3. What is the structure of a standard Odoo Module and `__manifest__.py`?
 
 ```text
 my_module/
@@ -46,7 +47,7 @@ my_module/
 ├── security/
 │   ├── ir.model.access.csv
 │   └── security_rules.xml
-├── data/                    # Default/seed records & ir.cron definitions
+├── data/                    # Sequences, default records & ir.cron definitions
 ├── wizard/                  # TransientModel wizards & their views
 ├── report/                  # QWeb report templates & report actions
 ├── controllers/             # HTTP/JSON routes
@@ -54,16 +55,44 @@ my_module/
 └── tests/                   # TransactionCase / HttpCase unit tests
 ```
 
-**Important:** Every file in `data` inside `__manifest__.py` is loaded in order—security groups and `ir.model.access.csv` must be declared **before** views or data that reference them, and XML actions must be declared **before** menu items that reference them.
+Key `__manifest__.py` flags:
+- `depends`: Modules that must be installed before this module (`['base', 'sale']`).
+- `data`: XML/CSV files loaded on install and upgrade **in declared order** (`security/` groups and `ir.model.access.csv` must load before views/data referencing them; actions before menu items).
+- `installable`: Whether the module can be installed (`True`).
+- `application`: `True` if it appears as a top-level app in the Apps dashboard (`False` for technical/bridge modules).
+- `auto_install`: `True` if Odoo should automatically install the module as soon as all modules in `depends` are installed.
+- `license`: e.g. `'LGPL-3'` or `'OPL-1'`.
 
 ---
 
-### 4. What are common Odoo CLI commands for development?
+### 4. What are common Odoo CLI & Shell commands for development and troubleshooting?
 
 - **Scaffold a new module:** `odoo-bin scaffold my_module /path/to/addons`
-- **Install or upgrade a module:** `odoo-bin -c odoo.conf -d mydb -i my_module` / `-u my_module --stop-after-init`
-- **Interactive shell:** `odoo-bin shell -c odoo.conf -d mydb` (gives access to `env` for testing ORM queries safely; changes require `env.cr.commit()` to persist)
-- **Developer reload mode:** `--dev=all` (or `--dev=reload,xml,qweb,assets`) reloads Python/XML/assets without restarting the server for every view change.
+- **Install or upgrade a module:**
+  ```bash
+  ./odoo-bin -c /etc/odoo/odoo.conf -d mydb -i my_module --stop-after-init
+  ./odoo-bin -c /etc/odoo/odoo.conf -d mydb -u my_module --stop-after-init
+  ```
+- **Odoo Shell (source, system user, or Docker):**
+  ```bash
+  ./odoo-bin shell -d test_db -c /etc/odoo/odoo.conf --addons-path=/opt/odoo/custom_addons
+  docker exec -it odoo odoo shell -d test_db -c /etc/odoo/odoo.conf
+  ```
+  Inside the shell, `env` is pre-bound; ORM writes only persist if you call `env.cr.commit()`. In standalone Python scripts without pre-bound `env`, open a cursor via the registry:
+  ```python
+  from odoo import SUPERUSER_ID, api, registry
+
+  with registry('test_db').cursor() as cr:
+      env = api.Environment(cr, SUPERUSER_ID, {})
+      env['res.partner'].create({'name': 'Script Partner'})
+      cr.commit()
+  ```
+- **Developer reload mode:** `--dev=all` (or `--dev=reload,xml,qweb,assets`) reloads Python/XML/assets without full manual restarts.
+- **Port `8069` already in use (`Address already in use`):**
+  ```bash
+  sudo lsof -i :8069
+  sudo kill -9 <PID>
+  ```
 
 ---
 
@@ -99,4 +128,21 @@ class TestSaleApproval(TransactionCase):
 ### 6. What happens during a Module Upgrade (`-u`) vs. Fresh Install (`-i`)?
 
 - **Install (`-i`):** Runs schema creation/updates for the module's models, loads all `data` and `demo` XML/CSV files (creating `ir.model.data` XML IDs), and registers menus, views, and security rules.
-- **Upgrade (`-u`):** Updates PostgreSQL columns for modified/new fields, reloads `data` files (updating records whose `noupdate="0"`, while skipping records marked `noupdate="1"`), and executes `pre-migrate` / `post-migrate` scripts if version migrations are provided.
+- **Upgrade (`-u`):** Updates PostgreSQL columns for modified/new fields, reloads `data` files (updating records with `noupdate="0"`, while skipping records marked `noupdate="1"`), and executes `pre-migrate` / `post-migrate` scripts if version migrations are provided.
+
+---
+
+### 7. Which Git Workflows and Recovery Commands do Odoo Developers use daily?
+
+- **Syncing & linear history (`fetch` + `rebase` vs. `pull`):**
+  - `git fetch origin && git rebase origin/feature-branch` (or `git pull --rebase origin feature-branch`) replays local commits on top of remote changes without creating noisy merge commits.
+  - During conflicts: fix files -> `git add <file>` -> `git rebase --continue` (or `git rebase --abort`).
+- **Stashing work in progress (`git stash`):**
+  - `git stash push -u -m "WIP: invoice fix"` stashes tracked **and untracked** (`-u`) changes with a label.
+  - `git stash push --keep-index -m "WIP"` stashes unstaged edits while keeping staged changes ready to test/commit.
+  - `git stash list`, `git stash show -p stash@{0}` (inspect diff), `git stash apply` (keep stash) vs. `git stash pop` (apply + drop), `git stash branch new-branch stash@{0}` (move stash onto a clean branch).
+- **Undoing & recovering mistakes (`reset`, `amend`, `checkout`, `reflog`):**
+  - `git commit --amend`: Updates the last local commit (never amend already-shared/pushed commits without team agreement).
+  - `git reset --soft HEAD~1`: Undoes the last commit while keeping changes staged.
+  - `git reset --hard HEAD` + `git clean -fd`: Discards all uncommitted tracked changes and removes untracked files/directories.
+  - `git reflog`: Shows the local history of `HEAD` movements, letting you recover commits lost after an accidental `git reset --hard` or bad rebase.
