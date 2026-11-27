@@ -1,55 +1,74 @@
-# 📁 Repository Structure Guide
+# Odoo & Python Interview Questions
 
-This repository is dedicated to interview questions for Odoo, cleanly split between technical and functional topics. This guide explains the purpose of each folder, what topics are covered, and how contributors can update or extend the content.
-
----
-
-## ✅ Technical Folder Structure
-
-All developer-oriented and code-related interview questions go in the `technical/` folder:
-
-
-### 🧠 Topics Covered
-
-| File                    | Topics Included                                                                 |
-|-------------------------|--------------------------------------------------------------------------------|
-| 01_core.md              | Odoo architecture, server startup flow, module structure, `__init__.py` usage  |
-| 02_models.md            | ORM basics, Model vs TransientModel, inheritance, recordsets                   |
-| 03_fields_api.md        | Field types, computed fields, constraints, `@api.depends`, onchange            |
-| 04_views_qweb.md        | XML views (form/tree/search), QWeb templates, rendering engine                 |
-| 05_security_access.md   | User groups, access rights, record rules, security XML files                   |
-| 06_rpc_api.md           | XML-RPC, JSON-RPC, REST API, controller routes, API authentication             |
-| 07_workflows_automation.md | Server actions, automated activities, mail templates, cron jobs           |
-| 08_performance_scalability.md | SQL optimization, caching, large datasets, lazy loading                |
-| 09_debugging_testing.md | Logging, debugging tools, Odoo tests (`TransactionCase`, `@tagged`)            |
-| 10_devtools_deployment.md | Odoo shell, scaffold, Docker, Runbot, install scripts, staging setup         |
-
-### ✏️ How to Contribute to Technical
-
-Use the YAML front-matter before each question.
+A structured, interview-ready collection of **Core Python**, **Odoo Technical**, and **Odoo Functional** questions and answers with clean code examples and business-process explanations.
 
 ---
 
-## ✅ Functional Folder Structure
+## Repository Layout
 
-All business process or module-usage questions go in the `functional/` folder:
+```text
+Odoo-interview-questions/
+├── README.md
+├── python/
+│   ├── 01_data_structures.md
+│   ├── 02_functions_decorators.md
+│   ├── 03_oop_and_dunders.md
+│   └── 04_memory_concurrency_exceptions.md
+├── technical/
+│   ├── general.md
+│   ├── 01_core_orm_models.md
+│   ├── 02_fields_api_decorators.md
+│   ├── 03_views_qweb_reports.md
+│   ├── 04_security_access.md
+│   └── 05_performance_cron_deployment.md
+└── functional/
+    ├── general.md
+    ├── 01_sales_crm.md
+    ├── 02_purchase_inventory.md
+    ├── 03_accounting_multicompany.md
+    └── 04_manufacturing_hr.md
+```
 
+---
 
-### 🧠 Topics Covered
+## Core Python (`python/`)
 
-| File                      | Topics Included                                                         |
-|---------------------------|------------------------------------------------------------------------|
-| 01_sales.md               | Sales order states, quotations, pricelists, units of measure, delivery policies |
-| 02_purchase.md            | RFQs, PO approval flows, vendor bills, dropshipping                      |
-| 03_inventory.md           | Routes, pickings, stock moves, inventory adjustments                     |
-| 04_accounting.md          | Invoicing, reconciliation, journal entries, fiscal positions, tax config |
-| 05_project.md             | Project stages, tasks, milestones, timesheet billing                     |
-| 06_manufacturing.md       | BoMs, MOs, subcontracting, MPS, work centers                             |
-| 07_hr_payroll.md          | Employee contracts, leaves, payslip batches, payroll structure           |
-| 08_crm.md                 | Lead vs opportunity, stages, lost reasons, tags                          |
-| 09_website_ecommerce.md   | Webshop setup, payment acquirers, checkout flow                          |
-| 10_general.md             | Company settings, multi-company, user management, chatter usage          |
+| File | Topics Covered |
+| :--- | :--- |
+| [01_data_structures.md](./python/01_data_structures.md) | `list`, `tuple`, `dict`, `set`, mutability & hashability, shallow vs. deep copy, `==` vs. `is`, comprehensions, slicing, Big-O complexity |
+| [02_functions_decorators.md](./python/02_functions_decorators.md) | `*args`/`**kwargs`, mutable default arguments, LEGB & closures, late binding pitfall, decorators (`@functools.wraps`), iterators & generators (`yield`), `lambda`, `map`/`filter`/`reduce`, `partial` & `lru_cache` |
+| [03_oop_and_dunders.md](./python/03_oop_and_dunders.md) | Class vs. instance attributes, `@classmethod` vs. `@staticmethod`, multiple inheritance & MRO (`super()`), `__new__` vs. `__init__`, dunder methods, `@property`, `@dataclass` & `__slots__` |
+| [04_memory_concurrency_exceptions.md](./python/04_memory_concurrency_exceptions.md) | Reference counting & cyclic GC, GIL, `threading` vs. `multiprocessing` vs. `asyncio`, exception handling (`try`/`except`/`else`/`finally`), context managers (`with`), `__name__ == "__main__"`, type hints |
 
-### ✏️ How to Contribute to Functional
+---
 
-Use the same YAML block format for metadata.
+## Odoo Technical (`technical/`)
+
+| File | Topics Covered |
+| :--- | :--- |
+| [general.md](./technical/general.md) | Webhooks, Odoo MVC architecture, module structure (`__manifest__.py`), CLI commands, automated testing (`TransactionCase`, `@tagged`), install vs. upgrade |
+| [01_core_orm_models.md](./technical/01_core_orm_models.md) | `Model` / `TransientModel` / `AbstractModel`, `_name`/`_inherit`/`_inherits`, `search` vs. `browse`, `search_read` & `read_group`, `create`/`write`/`unlink`, `ensure_one`, `filtered`/`mapped`/`sorted`, `sudo`/`with_context`/`with_company` |
+| [02_fields_api_decorators.md](./technical/02_fields_api_decorators.md) | Relational fields & `Command` syntax, `@api.onchange` vs. `@api.depends`, computed field pitfalls, `_sql_constraints` vs. `@api.constrains`, `@api.model` |
+| [03_views_qweb_reports.md](./technical/03_views_qweb_reports.md) | XML views (`form`, `list`, `search`, `kanban`), XPath view inheritance, domains & context, QWeb PDF reports, Excel (`.xlsx`) exports, HTTP/JSON controllers |
+| [04_security_access.md](./technical/04_security_access.md) | Security layers (`res.groups`), `ir.model.access.csv` vs. `ir.rule`, global vs. group record rules, multi-company enforcement (`check_company`), `sudo()` & SQL injection safety |
+| [05_performance_cron_deployment.md](./technical/05_performance_cron_deployment.md) | N+1 queries & prefetching, ORM vs. raw SQL (`flush_all` / `invalidate_all`), `ir.cron` scheduled actions, worker sizing & memory limits, PostgreSQL indexing & tuning |
+
+---
+
+## Odoo Functional (`functional/`)
+
+| File | Topics Covered |
+| :--- | :--- |
+| [general.md](./functional/general.md) | Record rules vs. access rights (functional view), user types (Internal/Portal/Public), chatter & activities, Developer Mode, implementation setup checklist |
+| [01_sales_crm.md](./functional/01_sales_crm.md) | Sales order lifecycle, delivery creation issues, ordered vs. delivered invoicing policies, pricelists & discounts, Units of Measure (UoM), CRM leads vs. opportunities, pipeline stages & lost reasons |
+| [02_purchase_inventory.md](./functional/02_purchase_inventory.md) | Purchase flow & 2-way/3-way matching, product types, serial vs. lot numbers, Standard/AVCO/FIFO costing, automated vs. manual valuation, reordering rules, MTO & dropshipping, landed costs, inventory adjustments, pickings/moves/quants |
+| [03_accounting_multicompany.md](./functional/03_accounting_multicompany.md) | Accounts affected by SO invoicing, payment reconciliation & outstanding accounts, credit notes & refunds, fiscal positions, multi-currency & FX gains/losses, multi-company & inter-company transactions |
+| [04_manufacturing_hr.md](./functional/04_manufacturing_hr.md) | BoM types (Manufacture, Kit, Subcontracting), Manufacturing Orders & Work Centers, subcontracting flow, scrap orders, `hr.employee` vs. `res.users`, contracts, time off, expenses & payroll basics |
+
+---
+
+## Contributing Guidelines
+
+- Place questions in the matching topic file (`python/`, `technical/`, or `functional/`), or in `general.md` if cross-cutting.
+- Use sequential `### N. Question Title` headings separated by `---` dividers.
+- Close all fenced code blocks with explicit language tags (`python`, `xml`, `csv`, `text`) and avoid duplicating functional topics inside `technical/`.
